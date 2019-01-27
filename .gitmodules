@@ -1,0 +1,6 @@
+[submodule "external/openexr"]
+	path = external/openexr
+	url = https://github.com/anderslanglands/openexr.git
+[submodule "external/oiio"]
+	path = external/oiio
+	url = https://github.com/anderslanglands/oiio.git
