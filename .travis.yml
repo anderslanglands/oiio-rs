@@ -1,0 +1,7 @@
+language: rust
+rust:
+  - stable
+
+before-install:
+  - sudo apt-get update
+  - sudo apt-get install -y libboost-dev libraw-dev libtiff-dev libjpeg-dev libopenjp2-7-dev libgif-dev libpng-dev libwebp-dev
