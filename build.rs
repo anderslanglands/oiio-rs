@@ -6,7 +6,6 @@ pub fn main() {
     let boost_root = env::var("BOOST_ROOT").unwrap_or("".to_string());
 
     let dst_openexr = cmake::Config::new("external/openexr")
-                        .define("BOOST_ROOT", &boost_root)
                         .define("OPENEXR_BUILD_SHARED", "OFF")
                         .define("OPENEXR_BUILD_STATIC", "ON")
                         .define("OPENEXR_BUILD_PYTHON_LIBS", "OFF")
@@ -17,7 +16,6 @@ pub fn main() {
                         .build();
 
     let dst_oiio = cmake::Config::new("external/oiio")
-                        .define("BOOST_ROOT", &boost_root)
                         .define("LINKSTATIC", "ON")
                         .define("BUILDSTATIC", "ON")
                         .define("OIIO_BUILD_TOOLS", "OFF")
