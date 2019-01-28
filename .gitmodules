@@ -1,6 +1,8 @@
 [submodule "external/openexr"]
 	path = external/openexr
 	url = https://github.com/anderslanglands/openexr.git
+    branch = r2.3.0
 [submodule "external/oiio"]
 	path = external/oiio
 	url = https://github.com/anderslanglands/oiio.git
+    branch = r2.0.4
