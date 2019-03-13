@@ -76,10 +76,17 @@ extern "C" {
     pub(crate) fn ImageOutput_destroy(io: ImageOutput);
 
     pub(crate) fn ImageBuf_create(filename: *const c_char) -> ImageBuf;
+    pub(crate) fn ImageBuf_create_with_data(
+        spec: ImageSpec,
+        data: *const c_void,
+    ) -> ImageBuf;
     pub(crate) fn ImageBuf_destroy(imbuf: ImageBuf);
     pub(crate) fn ImageBuf_read(imbuf: ImageBuf) -> bool;
-    pub(crate) fn ImageBuf_write(imbuf: ImageBuf, filename: *const c_char, dtype: TypeDesc)
-        -> bool;
+    pub(crate) fn ImageBuf_write(
+        imbuf: ImageBuf,
+        filename: *const c_char,
+        dtype: TypeDesc,
+    ) -> bool;
 
     pub(crate) fn ImageBufAlgo_compare(
         a: ImageBuf,
@@ -87,6 +94,12 @@ extern "C" {
         failthresh: f32,
         warnthresh: f32,
     ) -> CompareResults;
+
+    pub(crate) fn ImageBufAlgo_colorconvert(
+        src: ImageBuf,
+        fromspace: *const c_char,
+        tospace: *const c_char,
+    ) -> ImageBuf;
 
     pub(crate) fn oiio_write_image_f32(
         filename: *const c_char,

@@ -28,30 +28,32 @@ typedef struct OIIO::ImageSpec* ImageSpec;
 typedef struct OIIO::ImageOutput* ImageOutput;
 
 ImageSpec ImageSpec_create();
-ImageSpec ImageSpec_create_with_dimensions(int xres, int yres, int nchans, TypeDesc fmt);
+ImageSpec ImageSpec_create_with_dimensions(int xres, int yres, int nchans,
+                                           TypeDesc fmt);
 void ImageSpec_destroy(ImageSpec spec);
 
 ImageOutput ImageOutput_create(const char* filename);
-bool ImageOutput_open(ImageOutput io, const char* filename, ImageSpec spec, int mode);
+bool ImageOutput_open(ImageOutput io, const char* filename, ImageSpec spec,
+                      int mode);
 bool ImageOutput_write_image(ImageOutput io, TypeDesc fmt, const void* data,
-    ptrdiff_t xstride, ptrdiff_t ystride, ptrdiff_t zstride
-);
+                             ptrdiff_t xstride, ptrdiff_t ystride,
+                             ptrdiff_t zstride);
 const char* ImageOutput_geterror(ImageOutput io);
 void ImageOutput_destroy(ImageOutput io);
 
 typedef struct OIIO::ImageBuf* ImageBuf;
 ImageBuf ImageBuf_create(const char* filename);
+ImageBuf ImageBuf_create_with_data(ImageSpec spec, void* data);
 void ImageBuf_destroy(ImageBuf imbuf);
 bool ImageBuf_read(ImageBuf imbuf);
 bool ImageBuf_write(ImageBuf imbuf, const char* filename, TypeDesc dtype);
 
-OIIO::ImageBufAlgo::CompareResults ImageBufAlgo_compare(ImageBuf a, ImageBuf b, float failthresh, float warnthresh);
+OIIO::ImageBufAlgo::CompareResults ImageBufAlgo_compare(ImageBuf a, ImageBuf b,
+                                                        float failthresh,
+                                                        float warnthresh);
 
-
-
-int oiio_write_image_f32(const char* filename, int width, int height, int nchannels,
-              float* data);
-
+int oiio_write_image_f32(const char* filename, int width, int height,
+                         int nchannels, float* data);
 }
 
 #endif

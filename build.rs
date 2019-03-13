@@ -6,28 +6,28 @@ pub fn main() {
     let boost_root = env::var("BOOST_ROOT").unwrap_or("".to_string());
 
     let dst_openexr = cmake::Config::new("external/openexr")
-                        .define("OPENEXR_BUILD_SHARED", "OFF")
-                        .define("OPENEXR_BUILD_STATIC", "ON")
-                        .define("OPENEXR_BUILD_PYTHON_LIBS", "OFF")
-                        .define("OPENEXR_BUILD_VIEWERS", "OFF")
-                        .define("OPENEXR_BUILD_TESTS", "OFF")
-                        .define("OPENEXR_BUILD_UTILS", "OFF")
-                        .always_configure(false)
-                        .build();
+        .define("OPENEXR_BUILD_SHARED", "OFF")
+        .define("OPENEXR_BUILD_STATIC", "ON")
+        .define("OPENEXR_BUILD_PYTHON_LIBS", "OFF")
+        .define("OPENEXR_BUILD_VIEWERS", "OFF")
+        .define("OPENEXR_BUILD_TESTS", "OFF")
+        .define("OPENEXR_BUILD_UTILS", "OFF")
+        .always_configure(false)
+        .build();
 
     let dst_oiio = cmake::Config::new("external/oiio")
-                        .define("LINKSTATIC", "ON")
-                        .define("BUILDSTATIC", "ON")
-                        .define("OIIO_BUILD_TOOLS", "OFF")
-                        .define("OIIO_BUILD_TESTS", "OFF")
-                        .define("USE_OPENGL", "OFF")
-                        .define("USE_QT", "OFF")
-                        .define("USE_PYTHON", "OFF")
-                        .define("OPENEXR_ROOT_DIR", dst_openexr.to_str().unwrap())
-                        .define("ILMBASE_ROOT_DIR", dst_openexr.to_str().unwrap())
-                        .define("OpenEXR_USE_STATIC_LIBS", "ON")
-                        .always_configure(false)
-                        .build();
+        .define("LINKSTATIC", "ON")
+        .define("BUILDSTATIC", "ON")
+        .define("OIIO_BUILD_TOOLS", "OFF")
+        .define("OIIO_BUILD_TESTS", "OFF")
+        .define("USE_OPENGL", "OFF")
+        .define("USE_QT", "OFF")
+        .define("USE_PYTHON", "OFF")
+        .define("OPENEXR_ROOT_DIR", dst_openexr.to_str().unwrap())
+        .define("ILMBASE_ROOT_DIR", dst_openexr.to_str().unwrap())
+        .define("OpenEXR_USE_STATIC_LIBS", "ON")
+        .always_configure(false)
+        .build();
 
     let inc_oiio = dst_oiio.join("include");
     let lib_oiio = dst_oiio.join("lib").join("libOpenImageIO.a");
@@ -39,23 +39,33 @@ pub fn main() {
     let lib_imath = dst_openexr.join("lib").join("libImath-2_3_s.a");
 
     let dst_coiio = cmake::Config::new("coiio")
-                        .define("INC_OIIO", &inc_oiio)
-                        .define("LIB_OIIO", &lib_oiio)
-                        .define("INC_OPENEXR", &inc_openexr)
-                        .define("LIB_HALF", &lib_half)
-                        .define("LIB_IEX", &lib_iex)
-                        .define("LIB_ILMIMF", &lib_ilmimf)
-                        .define("LIB_IMATH", &lib_imath)
-                        .build();
+        .define("INC_OIIO", &inc_oiio)
+        .define("LIB_OIIO", &lib_oiio)
+        .define("INC_OPENEXR", &inc_openexr)
+        .define("LIB_HALF", &lib_half)
+        .define("LIB_IEX", &lib_iex)
+        .define("LIB_ILMIMF", &lib_ilmimf)
+        .define("LIB_IMATH", &lib_imath)
+        .always_configure(false)
+        .build();
 
     println!("cargo:rustc-link-search=native={}", dst_coiio.display());
-    println!("cargo:rustc-link-search=native={}", dst_oiio.join("lib").display());
-    println!("cargo:rustc-link-search=native={}", dst_openexr.join("lib").display());
-    println!("cargo:rustc-link-search=native={}", Path::new(&boost_root).join("lib").display());
+    println!(
+        "cargo:rustc-link-search=native={}",
+        dst_oiio.join("lib").display()
+    );
+    println!(
+        "cargo:rustc-link-search=native={}",
+        dst_openexr.join("lib").display()
+    );
+    println!(
+        "cargo:rustc-link-search=native={}",
+        Path::new(&boost_root).join("lib").display()
+    );
 
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     println!("cargo:rustc-link-lib=dylib=stdc++");
-    #[cfg(target_os="macos")]
+    #[cfg(target_os = "macos")]
     println!("cargo:rustc-link-lib=dylib=c++");
 
     println!("cargo:rustc-link-lib=static=coiio");

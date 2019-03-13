@@ -5,7 +5,7 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
 
 pub struct ImageSpec {
-    spec: ffi::ImageSpec,
+    pub(crate) spec: ffi::ImageSpec,
 }
 
 impl ImageSpec {
@@ -15,9 +15,16 @@ impl ImageSpec {
         }
     }
 
-    pub fn with_dimensions(xres: i32, yres: i32, nchans: i32, fmt: TypeDesc) -> ImageSpec {
+    pub fn with_dimensions(
+        xres: i32,
+        yres: i32,
+        nchans: i32,
+        fmt: TypeDesc,
+    ) -> ImageSpec {
         ImageSpec {
-            spec: unsafe { ffi::ImageSpec_create_with_dimensions(xres, yres, nchans, fmt) },
+            spec: unsafe {
+                ffi::ImageSpec_create_with_dimensions(xres, yres, nchans, fmt)
+            },
         }
     }
 }
@@ -61,7 +68,8 @@ pub trait ImageElement {
 impl ImageElement for f32 {
     const BASETYPE: typedesc::BaseType = typedesc::BaseType::FLOAT;
     const AGGREGATE: typedesc::Aggregate = typedesc::Aggregate::SCALAR;
-    const VECSEMANTICS: typedesc::VecSemantics = typedesc::VecSemantics::NOSEMANTICS;
+    const VECSEMANTICS: typedesc::VecSemantics =
+        typedesc::VecSemantics::NOSEMANTICS;
     const ARRAYLEN: i32 = 0;
 }
 
@@ -77,10 +85,21 @@ impl ImageOutput {
         }
     }
 
-    pub fn open(&mut self, filename: &str, spec: ImageSpec, mode: OpenMode) -> Result<(), String> {
+    pub fn open(
+        &mut self,
+        filename: &str,
+        spec: ImageSpec,
+        mode: OpenMode,
+    ) -> Result<(), String> {
         let filename = CString::new(filename).unwrap();
-        let success =
-            unsafe { ffi::ImageOutput_open(self.io, filename.as_ptr(), spec.spec, mode as i32) };
+        let success = unsafe {
+            ffi::ImageOutput_open(
+                self.io,
+                filename.as_ptr(),
+                spec.spec,
+                mode as i32,
+            )
+        };
         if success {
             Ok(())
         } else {

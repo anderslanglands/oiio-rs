@@ -22,18 +22,18 @@ pub enum BaseType {
 #[repr(u8)]
 #[derive(Copy, Clone, Debug)]
 pub enum Aggregate {
-    SCALAR=1,
+    SCALAR = 1,
     VEC2 = 2,
-    VEC3=3,
-    VEC4=4,
-    MATRIX33=9,
-    MATRIX44=16,
+    VEC3 = 3,
+    VEC4 = 4,
+    MATRIX33 = 9,
+    MATRIX44 = 16,
 }
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug)]
 pub enum VecSemantics {
-    NOSEMANTICS=0,
+    NOSEMANTICS = 0,
     COLOR,
     POINT,
     VECTOR,
@@ -54,32 +54,32 @@ pub struct TypeDesc {
 }
 
 pub const UINT8: TypeDesc = TypeDesc {
-    basetype: BaseType::UINT8, 
-    aggregate: Aggregate::SCALAR, 
+    basetype: BaseType::UINT8,
+    aggregate: Aggregate::SCALAR,
     vecsemantics: VecSemantics::NOSEMANTICS,
     reserved: 0,
     arraylen: 0,
 };
 
 pub const UINT16: TypeDesc = TypeDesc {
-    basetype: BaseType::UINT16, 
-    aggregate: Aggregate::SCALAR, 
+    basetype: BaseType::UINT16,
+    aggregate: Aggregate::SCALAR,
     vecsemantics: VecSemantics::NOSEMANTICS,
     reserved: 0,
     arraylen: 0,
 };
 
 pub const HALF: TypeDesc = TypeDesc {
-    basetype: BaseType::HALF, 
-    aggregate: Aggregate::SCALAR, 
+    basetype: BaseType::HALF,
+    aggregate: Aggregate::SCALAR,
     vecsemantics: VecSemantics::NOSEMANTICS,
     reserved: 0,
     arraylen: 0,
 };
 
 pub const FLOAT: TypeDesc = TypeDesc {
-    basetype: BaseType::FLOAT, 
-    aggregate: Aggregate::SCALAR, 
+    basetype: BaseType::FLOAT,
+    aggregate: Aggregate::SCALAR,
     vecsemantics: VecSemantics::NOSEMANTICS,
     reserved: 0,
     arraylen: 0,
