@@ -1,13 +1,5 @@
 use crate::typedesc::TypeDesc;
-use std::os::raw::{c_char, c_float, c_int, c_void};
-
-#[repr(C)]
-#[derive(PartialEq, Clone, Copy)]
-pub(crate) enum OiioResult {
-    Success,
-    OpenFailed,
-    WriteFailed,
-}
+use std::os::raw::{c_char, c_void};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -35,7 +27,7 @@ pub(crate) type ImageBuf = *mut ImageBuf_api;
 pub struct CompareResults {
     pub meanerror: f64,
     pub rms_error: f64,
-    pub PSNR: f64,
+    pub psnr: f64,
     pub maxerror: f64,
     pub maxx: i32,
     pub maxy: i32,
@@ -95,17 +87,18 @@ extern "C" {
         warnthresh: f32,
     ) -> CompareResults;
 
+    pub(crate) fn ImageBufAlgo_absdiff(a: ImageBuf, b: ImageBuf) -> ImageBuf;
+    pub(crate) fn ImageBufAlgo_mulimg(a: ImageBuf, b: ImageBuf) -> ImageBuf;
+    pub(crate) fn ImageBufAlgo_mulconst(a: ImageBuf, b: f32) -> ImageBuf;
+    pub(crate) fn ImageBufAlgo_colormap(
+        a: ImageBuf,
+        srcchannel: i32,
+        mapname: *const c_char,
+    ) -> ImageBuf;
+
     pub(crate) fn ImageBufAlgo_colorconvert(
         src: ImageBuf,
         fromspace: *const c_char,
         tospace: *const c_char,
     ) -> ImageBuf;
-
-    pub(crate) fn oiio_write_image_f32(
-        filename: *const c_char,
-        width: c_int,
-        height: c_int,
-        nchannels: c_int,
-        data: *const c_float,
-    ) -> OiioResult;
 }

@@ -3,7 +3,29 @@
 #include <OpenImageIO/imageio.h>
 #include <iostream>
 
-#include "coiio.h"
+typedef enum oiio_result {
+    OIIO_SUCCESS,
+    OIIO_OPEN_FAILED,
+    OIIO_WRITE_FAILED
+} oiio_result;
+
+typedef enum OpenMode {
+    Create,
+    AppendSubImage,
+    AppendMIPLevel,
+} OpenMode;
+
+struct TypeDesc {
+    unsigned char basetype;
+    unsigned char aggregate;
+    unsigned char vecsemantics;
+    unsigned char reserved;
+    int arraylen;
+};
+
+typedef struct OIIO::ImageSpec* ImageSpec;
+typedef struct OIIO::ImageOutput* ImageOutput;
+typedef struct OIIO::ImageBuf* ImageBuf;
 
 extern "C" {
 
@@ -67,25 +89,28 @@ OIIO::ImageBufAlgo::CompareResults ImageBufAlgo_compare(ImageBuf a, ImageBuf b,
     return OIIO::ImageBufAlgo::compare(*a, *b, failthresh, warnthresh);
 }
 
-ImageBuf ImageBufAlgo_colorconvert(ImageBuf src, const char* fromspace, const char* tospace) {
-    return new OIIO::ImageBuf(OIIO::ImageBufAlgo::colorconvert(*src, fromspace, tospace));
+ImageBuf ImageBufAlgo_colorconvert(ImageBuf src, const char* fromspace,
+                                   const char* tospace) {
+    return new OIIO::ImageBuf(
+        OIIO::ImageBufAlgo::colorconvert(*src, fromspace, tospace));
 }
 
-int oiio_write_image_f32(const char* filename, int width, int height,
-                         int nchannels, float* data) {
-    auto img_out = OIIO::ImageOutput::create(filename);
-    auto scanline_size = width * sizeof(float) * nchannels;
-    if (!img_out->open(filename, OIIO::ImageSpec(width, height, nchannels,
-                                                 OIIO::TypeDesc::FLOAT))) {
-        return OIIO_OPEN_FAILED;
-    }
-    if (!img_out->write_image(
-            OIIO::TypeDesc::FLOAT,
-            reinterpret_cast<char*>(data) + (height - 1) * scanline_size,
-            OIIO::AutoStride, -scanline_size, OIIO::AutoStride)) {
-        return OIIO_WRITE_FAILED;
-    }
+ImageBuf ImageBufAlgo_absdiff(ImageBuf a, ImageBuf b) {
+    return new OIIO::ImageBuf(OIIO::ImageBufAlgo::absdiff(*a, *b));
+}
 
-    return OIIO_SUCCESS;
+ImageBuf ImageBufAlgo_mulimg(ImageBuf a, ImageBuf b) {
+    return new OIIO::ImageBuf(OIIO::ImageBufAlgo::mul(*a, *b));
 }
+
+ImageBuf ImageBufAlgo_mulconst(ImageBuf a, float b) {
+    return new OIIO::ImageBuf(OIIO::ImageBufAlgo::mul(*a, b));
 }
+
+ImageBuf ImageBufAlgo_colormap(ImageBuf a, int srcchannel,
+                               const char* mapname) {
+    return new OIIO::ImageBuf(
+        OIIO::ImageBufAlgo::color_map(*a, srcchannel, mapname));
+}
+
+} // extern "C"

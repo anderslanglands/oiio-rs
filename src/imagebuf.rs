@@ -1,7 +1,7 @@
 use crate::ffi;
 use crate::imageio;
 use crate::typedesc::TypeDesc;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::c_void;
 
 pub enum DataVec {
@@ -24,7 +24,7 @@ impl WrappedVec for Vec<f32> {
 
 pub struct ImageBuf {
     pub(crate) buf: ffi::ImageBuf,
-    pub(crate) data: Option<DataVec>,
+    pub(crate) _data: Option<DataVec>,
 }
 
 impl Drop for ImageBuf {
@@ -41,7 +41,7 @@ impl ImageBuf {
         if buf.is_null() {
             Err(format!("Could not create ImageBuf for {:?}", filename))
         } else {
-            Ok(ImageBuf { buf, data: None })
+            Ok(ImageBuf { buf, _data: None })
         }
     }
 
@@ -55,7 +55,7 @@ impl ImageBuf {
 
         Ok(ImageBuf {
             buf,
-            data: Some(data.wrap()),
+            _data: Some(data.wrap()),
         })
     }
 

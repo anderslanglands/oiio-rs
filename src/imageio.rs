@@ -111,31 +111,27 @@ impl ImageOutput {
         }
     }
 
-    pub fn write_image<T: ImageElement>(
+    pub unsafe fn write_image<T: ImageElement>(
         &self,
         data: &[T],
         xstride: i64,
         ystride: i64,
         zstride: i64,
     ) -> Result<(), String> {
-        let success = unsafe {
-            ffi::ImageOutput_write_image(
-                self.io,
-                T::type_desc(),
-                data.as_ptr() as *const T as *const c_void,
-                xstride,
-                ystride,
-                zstride,
-            )
-        };
+        let success = ffi::ImageOutput_write_image(
+            self.io,
+            T::type_desc(),
+            data.as_ptr() as *const T as *const c_void,
+            xstride,
+            ystride,
+            zstride,
+        );
         if success {
             Ok(())
         } else {
-            Err(unsafe {
-                CStr::from_ptr(ffi::ImageOutput_geterror(self.io))
-                    .to_string_lossy()
-                    .into_owned()
-            })
+            Err(CStr::from_ptr(ffi::ImageOutput_geterror(self.io))
+                .to_string_lossy()
+                .into_owned())
         }
     }
 }
@@ -146,24 +142,26 @@ impl Drop for ImageOutput {
     }
 }
 
-#[test]
-fn test_write_image() {
-    let width = 128;
-    let height = 128;
-    let mut data = Vec::<f32>::new();
+// #[test]
+// fn test_write_image() {
+//     let width = 128;
+//     let height = 128;
+//     let mut data = Vec::<f32>::new();
 
-    for y in 0..height {
-        for x in 0..width {
-            data.push((x as f32) / (width as f32));
-            data.push((y as f32) / (height as f32));
-            data.push(0.0);
-        }
-    }
+//     for y in 0..height {
+//         for x in 0..width {
+//             data.push((x as f32) / (width as f32));
+//             data.push((y as f32) / (height as f32));
+//             data.push(0.0);
+//         }
+//     }
 
-    let spec = ImageSpec::with_dimensions(width, height, 3, f32::type_desc());
-    let mut io = ImageOutput::create("testimg.exr").unwrap();
-    io.open("testimg.exr", spec, OpenMode::Create).unwrap();
-    let scanline_size = std::mem::size_of::<f32>() * (width as usize) * 3;
-    io.write_image(&data[..], AUTOSTRIDE, scanline_size as i64, AUTOSTRIDE)
-        .unwrap();
-}
+//     let spec = ImageSpec::with_dimensions(width, height, 3, f32::type_desc());
+//     let mut io = ImageOutput::create("testimg.exr").unwrap();
+//     io.open("testimg.exr", spec, OpenMode::Create).unwrap();
+//     let scanline_size = std::mem::size_of::<f32>() * (width as usize) * 3;
+//     unsafe {
+//         io.write_image(&data[..], AUTOSTRIDE, scanline_size as i64, AUTOSTRIDE)
+//             .expect("Image write failed")
+//     };
+// }
