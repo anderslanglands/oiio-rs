@@ -46,7 +46,6 @@ pub fn main() {
         println!("cargo:rustc-link-lib=static=coiio");
         println!("cargo:rustc-link-lib=dylib=OpenImageIO");
     } else {
-        panic!("USING STATIC OIIO");
         let boost_root = settings_map
             .get("boost_root")
             .map_or("".to_string(), |s| s.clone());
