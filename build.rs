@@ -1,6 +1,5 @@
 use cmake;
 use std::collections::HashMap;
-use std::env;
 use std::path::Path;
 
 pub fn main() {
