@@ -1,18 +1,18 @@
 use crate::ffi;
 use crate::typedesc;
 use crate::typedesc::TypeDesc;
+use num_traits::Zero;
 use std::ffi::{CStr, CString};
-use std::os::raw::c_void;
+use std::os::raw::{c_char, c_void};
 
-pub struct ImageSpec {
-    pub(crate) spec: ffi::ImageSpec,
+pub enum ImageSpec {
+    Owned(ffi::ImageSpec),
+    Ref(ffi::ImageSpec),
 }
 
 impl ImageSpec {
     pub fn new() -> ImageSpec {
-        ImageSpec {
-            spec: unsafe { ffi::ImageSpec_create() },
-        }
+        ImageSpec::Owned(unsafe { ffi::ImageSpec_create() })
     }
 
     pub fn with_dimensions(
@@ -21,17 +21,119 @@ impl ImageSpec {
         nchans: i32,
         fmt: TypeDesc,
     ) -> ImageSpec {
-        ImageSpec {
-            spec: unsafe {
-                ffi::ImageSpec_create_with_dimensions(xres, yres, nchans, fmt)
-            },
+        ImageSpec::Owned(unsafe {
+            ffi::ImageSpec_create_with_dimensions(xres, yres, nchans, fmt)
+        })
+    }
+
+    pub fn set_channel_names(&mut self, channel_names: &[String]) {
+        let c_names = channel_names
+            .iter()
+            .map(|n| CString::new(n.as_str()).unwrap())
+            .collect::<Vec<_>>();
+
+        let ptr_names = c_names.iter().map(|n| n.as_ptr()).collect::<Vec<_>>();
+
+        unsafe {
+            let spec = match &self {
+                ImageSpec::Owned(s) => s,
+                ImageSpec::Ref(s) => s,
+            };
+            ffi::ImageSpec_set_channel_names(
+                *spec,
+                ptr_names.len() as i32,
+                ptr_names.as_ptr() as *const *const c_char,
+            );
         }
+    }
+
+    pub fn width(&self) -> i32 {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_width(*spec) }
+    }
+
+    pub fn height(&self) -> i32 {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_height(*spec) }
+    }
+
+    pub fn depth(&self) -> i32 {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_depth(*spec) }
+    }
+
+    pub fn nchannels(&self) -> i32 {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_nchannels(*spec) }
     }
 }
 
 impl Drop for ImageSpec {
     fn drop(&mut self) {
-        unsafe { ffi::ImageSpec_destroy(self.spec) };
+        match self {
+            ImageSpec::Owned(s) => {
+                unsafe { ffi::ImageSpec_destroy(*s) };
+            }
+            ImageSpec::Ref(_) => (),
+        }
+    }
+}
+
+#[repr(C)]
+pub struct ROI {
+    xbegin: i32,
+    xend: i32,
+    ybegin: i32,
+    yend: i32,
+    zbegin: i32,
+    zend: i32,
+    chbegin: i32,
+    chend: i32,
+}
+
+impl ROI {
+    pub fn all() -> ROI {
+        ROI::default()
+    }
+
+    pub fn new(xbegin: i32, xend: i32, ybegin: i32, yend: i32) -> ROI {
+        ROI {
+            xbegin,
+            xend,
+            ybegin,
+            yend,
+            zbegin: 0,
+            zend: 1,
+            chbegin: 0,
+            chend: 10000,
+        }
+    }
+}
+
+impl Default for ROI {
+    fn default() -> ROI {
+        ROI {
+            xbegin: std::i32::MIN,
+            xend: 0,
+            ybegin: 0,
+            yend: 0,
+            zbegin: 0,
+            zend: 0,
+            chbegin: 0,
+            chend: 0,
+        }
     }
 }
 
@@ -48,7 +150,7 @@ pub enum OpenMode {
 
 pub const AUTOSTRIDE: i64 = std::i64::MIN;
 
-pub trait ImageElement {
+pub trait ImageElement: Zero {
     const BASETYPE: typedesc::BaseType;
     const AGGREGATE: typedesc::Aggregate;
     const VECSEMANTICS: typedesc::VecSemantics;
@@ -85,6 +187,14 @@ impl ImageOutput {
         }
     }
 
+    fn geterror(&self) -> String {
+        unsafe {
+            CStr::from_ptr(ffi::ImageOutput_geterror(self.io))
+                .to_string_lossy()
+                .into_owned()
+        }
+    }
+
     pub fn open(
         &mut self,
         filename: &str,
@@ -92,22 +202,17 @@ impl ImageOutput {
         mode: OpenMode,
     ) -> Result<(), String> {
         let filename = CString::new(filename).unwrap();
+        let spec = match spec {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
         let success = unsafe {
-            ffi::ImageOutput_open(
-                self.io,
-                filename.as_ptr(),
-                spec.spec,
-                mode as i32,
-            )
+            ffi::ImageOutput_open(self.io, filename.as_ptr(), spec, mode as i32)
         };
         if success {
             Ok(())
         } else {
-            Err(unsafe {
-                CStr::from_ptr(ffi::ImageOutput_geterror(self.io))
-                    .to_string_lossy()
-                    .into_owned()
-            })
+            Err(self.geterror())
         }
     }
 
@@ -139,6 +244,81 @@ impl ImageOutput {
 impl Drop for ImageOutput {
     fn drop(&mut self) {
         unsafe { ffi::ImageOutput_destroy(self.io) };
+    }
+}
+
+pub struct ImageInput {
+    ii: ffi::ImageInput,
+}
+
+impl ImageInput {
+    pub fn open(filename: &str) -> Result<ImageInput, String> {
+        let filename = CString::new(filename).unwrap();
+        let ii = unsafe { ffi::ImageInput_open(filename.as_ptr()) };
+
+        if ii.is_null() {
+            let errstr = unsafe {
+                CStr::from_ptr(ffi::OIIO_geterror())
+                    .to_string_lossy()
+                    .into_owned()
+            };
+            Err(errstr)
+        } else {
+            Ok(ImageInput { ii })
+        }
+    }
+
+    fn geterror(&self) -> String {
+        unsafe {
+            CStr::from_ptr(ffi::ImageInput_geterror(self.ii))
+                .to_string_lossy()
+                .into_owned()
+        }
+    }
+
+    pub fn spec(&self) -> ImageSpec {
+        let spec = unsafe { ffi::ImageInput_spec(self.ii) };
+        assert!(!spec.is_null());
+        ImageSpec::Ref(spec)
+    }
+
+    pub fn read_image<T>(&mut self) -> Result<Vec<T>, String>
+    where
+        T: ImageElement + Clone,
+    {
+        let spec = self.spec();
+        let nelements =
+            (spec.width() * spec.height() * spec.nchannels()) as usize;
+        let mut result = vec![T::zero(); nelements];
+        let success = unsafe {
+            ffi::ImageInput_read_image(
+                self.ii,
+                T::type_desc(),
+                result.as_mut_ptr() as *mut c_void,
+            )
+        };
+
+        if success {
+            Ok(result)
+        } else {
+            Err(self.geterror())
+        }
+    }
+
+    pub fn close(&self) -> Result<(), String> {
+        let success = unsafe { ffi::ImageInput_close(self.ii) };
+
+        if success {
+            Ok(())
+        } else {
+            Err(self.geterror())
+        }
+    }
+}
+
+impl Drop for ImageInput {
+    fn drop(&mut self) {
+        unsafe { ffi::ImageInput_destroy(self.ii) };
     }
 }
 

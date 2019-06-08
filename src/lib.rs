@@ -1,8 +1,9 @@
-mod ffi;
+pub mod ffi;
 pub mod imagebuf;
 pub mod imagebufalgo;
 pub mod imageio;
 pub mod typedesc;
+pub use ffi::Ustring;
 pub use imageio::ImageElement;
 
 pub fn write_image_f32(
