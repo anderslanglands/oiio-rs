@@ -48,6 +48,7 @@ int ImageSpec_width(ImageSpec spec) { return spec->width; }
 int ImageSpec_height(ImageSpec spec) { return spec->height; }
 int ImageSpec_depth(ImageSpec spec) { return spec->depth; }
 int ImageSpec_nchannels(ImageSpec spec) { return spec->nchannels; }
+TypeDesc ImageSpec_format(ImageSpec spec) { return *(TypeDesc*)&spec->format; }
 
 void ImageSpec_destroy(ImageSpec spec) { delete spec; }
 

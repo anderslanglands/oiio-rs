@@ -107,6 +107,7 @@ extern "C" {
     pub(crate) fn ImageSpec_height(spec: ImageSpec) -> i32;
     pub(crate) fn ImageSpec_depth(spec: ImageSpec) -> i32;
     pub(crate) fn ImageSpec_nchannels(spec: ImageSpec) -> i32;
+    pub(crate) fn ImageSpec_format(spec: ImageSpec) -> TypeDesc;
     pub(crate) fn ImageSpec_destroy(spec: ImageSpec);
 
     pub(crate) fn ImageOutput_create(filename: *const c_char) -> ImageOutput;

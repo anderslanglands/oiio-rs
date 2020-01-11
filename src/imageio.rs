@@ -78,6 +78,14 @@ impl ImageSpec {
         };
         unsafe { ffi::ImageSpec_nchannels(*spec) }
     }
+
+    pub fn format(&self) -> TypeDesc {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_format(*spec) }
+    }
 }
 
 impl Drop for ImageSpec {
@@ -165,6 +173,14 @@ pub trait ImageElement: Zero {
             arraylen: Self::ARRAYLEN,
         }
     }
+}
+
+impl ImageElement for u8 {
+    const BASETYPE: typedesc::BaseType = typedesc::BaseType::UINT8;
+    const AGGREGATE: typedesc::Aggregate = typedesc::Aggregate::SCALAR;
+    const VECSEMANTICS: typedesc::VecSemantics =
+        typedesc::VecSemantics::NOSEMANTICS;
+    const ARRAYLEN: i32 = 0;
 }
 
 impl ImageElement for f32 {
