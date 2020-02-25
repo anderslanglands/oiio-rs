@@ -109,6 +109,18 @@ extern "C" {
     pub(crate) fn ImageSpec_nchannels(spec: ImageSpec) -> i32;
     pub(crate) fn ImageSpec_format(spec: ImageSpec) -> TypeDesc;
     pub(crate) fn ImageSpec_destroy(spec: ImageSpec);
+    pub(crate) fn ImageSpec_get_int_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+    ) -> *const i32;
+    pub(crate) fn ImageSpec_get_float_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+    ) -> *const f32;
+    pub(crate) fn ImageSpec_get_string_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+    ) -> *const c_char;
 
     pub(crate) fn ImageOutput_create(filename: *const c_char) -> ImageOutput;
     pub(crate) fn ImageOutput_open(

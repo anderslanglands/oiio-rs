@@ -86,6 +86,62 @@ impl ImageSpec {
         };
         unsafe { ffi::ImageSpec_format(*spec) }
     }
+
+    pub fn get_int_attribute(&self, name: &str) -> Option<i32> {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let ptr =
+            unsafe { ffi::ImageSpec_get_int_attribute(*spec, name.as_ptr()) };
+
+        if ptr.is_null() {
+            None
+        } else {
+            unsafe { Some(*ptr) }
+        }
+    }
+
+    pub fn get_float_attribute(&self, name: &str) -> Option<f32> {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let ptr =
+            unsafe { ffi::ImageSpec_get_float_attribute(*spec, name.as_ptr()) };
+
+        if ptr.is_null() {
+            None
+        } else {
+            unsafe { Some(*ptr) }
+        }
+    }
+
+    pub fn get_string_attribute(&self, name: &str) -> Option<String> {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let ptr = unsafe {
+            ffi::ImageSpec_get_string_attribute(*spec, name.as_ptr())
+        };
+
+        if ptr.is_null() {
+            None
+        } else {
+            unsafe {
+                Some(
+                    CStr::from_ptr(ptr)
+                        .to_string_lossy()
+                        .to_owned()
+                        .to_string(),
+                )
+            }
+        }
+    }
 }
 
 impl Drop for ImageSpec {

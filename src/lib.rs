@@ -6,6 +6,10 @@ pub mod typedesc;
 pub use ffi::Ustring;
 pub use imageio::ImageElement;
 
+pub use imagebuf::{ImageBuf, WrappedBuf};
+pub use imageio::{ImageInput, ImageOutput, ImageSpec};
+pub use typedesc::TypeDesc;
+
 pub fn write_image_f32(
     filename: &str,
     width: usize,

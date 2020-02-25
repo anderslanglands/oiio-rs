@@ -62,6 +62,33 @@ void ImageSpec_set_channel_names(ImageSpec spec, int num_channels,
     spec->channelnames = names;
 }
 
+int* ImageSpec_get_int_attribute(ImageSpec spec, const char* name) {
+    auto p = spec->find_attribute(name, OIIO::TypeDesc::INT);
+    if (!p) {
+        return nullptr;
+    } else {
+        return (int*)p->data();
+    }
+}
+
+float* ImageSpec_get_float_attribute(ImageSpec spec, const char* name) {
+    auto p = spec->find_attribute(name, OIIO::TypeDesc::FLOAT);
+    if (!p) {
+        return nullptr;
+    } else {
+        return (float*)p->data();
+    }
+}
+
+const char* ImageSpec_get_string_attribute(ImageSpec spec, const char* name) {
+    auto p = spec->find_attribute(name, OIIO::TypeDesc::STRING);
+    if (!p) {
+        return nullptr;
+    } else {
+        return ((OIIO::string_view*)p->data())->c_str();
+    }
+}
+
 ImageOutput ImageOutput_create(const char* filename) {
     auto io = OIIO::ImageOutput::create(filename);
     return io.release();
