@@ -3,6 +3,13 @@ use std::os::raw::{c_char, c_void};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct ParamValue_api {
+    _unused: [u8; 0],
+}
+pub type ParamValue = *mut ParamValue_api;
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct ImageSpec_api {
     _unused: [u8; 0],
 }
@@ -91,6 +98,26 @@ extern "C" {
 
     pub fn OIIO_geterror() -> *const c_char;
 
+    pub(crate) fn ParamValue_type(p: ParamValue) -> TypeDesc;
+    pub(crate) fn ParamValue_name(p: ParamValue) -> *const c_char;
+    pub(crate) fn ParamValue_nvalues(p: ParamValue) -> i32;
+    pub(crate) fn ParamValue_get_int(p: ParamValue, default_value: i32) -> i32;
+    pub(crate) fn ParamValue_get_int_indexed(
+        p: ParamValue,
+        index: i32,
+        default_value: i32,
+    ) -> i32;
+    pub(crate) fn ParamValue_get_float(
+        p: ParamValue,
+        default_value: f32,
+    ) -> f32;
+    pub(crate) fn ParamValue_get_float_indexed(
+        p: ParamValue,
+        index: f32,
+        default_value: f32,
+    ) -> f32;
+    pub(crate) fn ParamValue_get_string(p: ParamValue) -> *const c_char;
+
     pub(crate) fn ImageSpec_create() -> ImageSpec;
     pub(crate) fn ImageSpec_create_with_dimensions(
         xres: i32,
@@ -109,6 +136,29 @@ extern "C" {
     pub(crate) fn ImageSpec_nchannels(spec: ImageSpec) -> i32;
     pub(crate) fn ImageSpec_format(spec: ImageSpec) -> TypeDesc;
     pub(crate) fn ImageSpec_destroy(spec: ImageSpec);
+
+    pub(crate) fn ImageSpec_get_num_params(spec: ImageSpec) -> usize;
+    pub(crate) fn ImageSpec_get_param(
+        spec: ImageSpec,
+        index: usize,
+    ) -> ParamValue;
+
+    pub(crate) fn ImageSpec_set_int_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+        value: i32,
+    );
+    pub(crate) fn ImageSpec_set_float_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+        value: f32,
+    );
+    pub(crate) fn ImageSpec_set_string_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+        value: *const c_char,
+    );
+
     pub(crate) fn ImageSpec_get_int_attribute(
         spec: ImageSpec,
         name: *const c_char,

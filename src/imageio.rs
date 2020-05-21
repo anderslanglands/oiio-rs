@@ -10,6 +10,58 @@ pub enum ImageSpec {
     Ref(ffi::ImageSpec),
 }
 
+pub struct ParamValue {
+    ptr: ffi::ParamValue,
+}
+
+impl ParamValue {
+    pub fn get_type(&self) -> TypeDesc {
+        unsafe { ffi::ParamValue_type(self.ptr) }
+    }
+
+    pub fn name(&self) -> String {
+        let ptr = unsafe { ffi::ParamValue_name(self.ptr) };
+        if ptr.is_null() {
+            panic!("Paramvalue name ptr was null")
+        } else {
+            unsafe {
+                CStr::from_ptr(ptr).to_string_lossy().to_owned().to_string()
+            }
+        }
+    }
+
+    pub fn nvalues(&self) -> i32 {
+        unsafe { ffi::ParamValue_nvalues(self.ptr) }
+    }
+
+    pub fn as_i32_or(&self, default: i32) -> i32 {
+        unsafe { ffi::ParamValue_get_int(self.ptr, default) }
+    }
+
+    pub fn indexed_as_i32_or(&self, index: i32, default: i32) -> i32 {
+        unsafe { ffi::ParamValue_get_int_indexed(self.ptr, index, default) }
+    }
+
+    pub fn as_f32_or(&self, default: f32) -> f32 {
+        unsafe { ffi::ParamValue_get_float(self.ptr, default) }
+    }
+
+    pub fn indexed_as_f32_or(&self, index: f32, default: f32) -> f32 {
+        unsafe { ffi::ParamValue_get_float_indexed(self.ptr, index, default) }
+    }
+
+    pub fn to_string(&self) -> String {
+        let ptr = unsafe { ffi::ParamValue_get_string(self.ptr) };
+        if ptr.is_null() {
+            panic!("Paramvalue name ptr was null")
+        } else {
+            unsafe {
+                CStr::from_ptr(ptr).to_string_lossy().to_owned().to_string()
+            }
+        }
+    }
+}
+
 impl ImageSpec {
     pub fn new() -> ImageSpec {
         ImageSpec::Owned(unsafe { ffi::ImageSpec_create() })
@@ -87,6 +139,27 @@ impl ImageSpec {
         unsafe { ffi::ImageSpec_format(*spec) }
     }
 
+    pub fn get_num_params(&self) -> usize {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        unsafe { ffi::ImageSpec_get_num_params(*spec) }
+    }
+
+    pub fn get_param(&self, index: usize) -> Option<ParamValue> {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let ptr = unsafe { ffi::ImageSpec_get_param(*spec, index) };
+        if ptr.is_null() {
+            None
+        } else {
+            Some(ParamValue { ptr })
+        }
+    }
+
     pub fn get_int_attribute(&self, name: &str) -> Option<i32> {
         let spec = match &self {
             ImageSpec::Owned(s) => s,
@@ -141,6 +214,44 @@ impl ImageSpec {
                 )
             }
         }
+    }
+
+    pub fn set_int_attribute(&mut self, name: &str, value: i32) {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        unsafe {
+            ffi::ImageSpec_set_int_attribute(*spec, name.as_ptr(), value)
+        };
+    }
+
+    pub fn set_float_attribute(&mut self, name: &str, value: f32) {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        unsafe {
+            ffi::ImageSpec_set_float_attribute(*spec, name.as_ptr(), value)
+        };
+    }
+
+    pub fn set_string_attribute(&mut self, name: &str, value: &str) {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let value = CString::new(value).unwrap();
+        unsafe {
+            ffi::ImageSpec_set_string_attribute(
+                *spec,
+                name.as_ptr(),
+                value.as_ptr(),
+            )
+        };
     }
 }
 

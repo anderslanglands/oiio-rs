@@ -30,8 +30,43 @@ typedef struct OIIO::ImageOutput* ImageOutput;
 typedef struct OIIO::ImageBuf* ImageBuf;
 typedef struct OIIO::ustring ustring;
 typedef struct OIIO::ROI ROI;
+typedef struct OIIO::ParamValue* ParamValue;
 
 extern "C" {
+
+TypeDesc ParamValue_type(const ParamValue p) {
+    auto td = p->type();
+    return *(TypeDesc*)&td;
+}
+
+const char* ParamValue_name(const ParamValue p) { return p->name().c_str(); }
+
+int ParamValue_nvalues(const ParamValue p) { return p->nvalues(); }
+
+int ParamValue_get_int(const ParamValue p, int default_value) {
+    return p->get_int(default_value);
+}
+
+int ParamValue_get_int_indexed(const ParamValue p, int index,
+                               int default_value) {
+    return p->get_int_indexed(index, default_value);
+}
+
+float ParamValue_get_float(const ParamValue p, float default_value) {
+    return p->get_float(default_value);
+}
+
+float ParamValue_get_float_indexed(const ParamValue p, float index,
+                                   float default_value) {
+    return p->get_float_indexed(index, default_value);
+}
+
+// FIXME: not thread-safe!
+static std::string ParamValue_string_value;
+const char* ParamValue_get_string(const ParamValue p) {
+    ParamValue_string_value = p->get_string();
+    return ParamValue_string_value.c_str();
+}
 
 ImageSpec ImageSpec_create() {
     auto spec = new OIIO::ImageSpec;
@@ -60,6 +95,32 @@ void ImageSpec_set_channel_names(ImageSpec spec, int num_channels,
         names.emplace_back(channel_names[i]);
     }
     spec->channelnames = names;
+}
+
+void ImageSpec_set_int_attribute(ImageSpec spec, const char* name, int value) {
+    spec->attribute(name, value);
+}
+
+void ImageSpec_set_float_attribute(ImageSpec spec, const char* name,
+                                   float value) {
+    spec->attribute(name, value);
+}
+
+void ImageSpec_set_string_attribute(ImageSpec spec, const char* name,
+                                    const char* value) {
+    spec->attribute(name, value);
+}
+
+size_t ImageSpec_get_num_params(ImageSpec spec) {
+    return spec->extra_attribs.size();
+}
+
+ParamValue ImageSpec_get_param(ImageSpec spec, size_t index) {
+    if (index < spec->extra_attribs.size()) {
+        return &spec->extra_attribs[index];
+    } else {
+        return nullptr;
+    }
 }
 
 int* ImageSpec_get_int_attribute(ImageSpec spec, const char* name) {
