@@ -111,6 +111,11 @@ void ImageSpec_set_string_attribute(ImageSpec spec, const char* name,
     spec->attribute(name, value);
 }
 
+void ImageSpec_set_attribute(ImageSpec spec, const char* name, TypeDesc td,
+                             void* value) {
+    spec->attribute(name, *(OIIO::TypeDesc*)&td, value);
+}
+
 size_t ImageSpec_get_num_params(ImageSpec spec) {
     return spec->extra_attribs.size();
 }

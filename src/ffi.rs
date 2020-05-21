@@ -143,6 +143,13 @@ extern "C" {
         index: usize,
     ) -> ParamValue;
 
+    pub(crate) fn ImageSpec_set_attribute(
+        spec: ImageSpec,
+        name: *const c_char,
+        td: TypeDesc,
+        value: *const c_void,
+    );
+
     pub(crate) fn ImageSpec_set_int_attribute(
         spec: ImageSpec,
         name: *const c_char,

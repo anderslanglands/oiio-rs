@@ -227,6 +227,42 @@ impl ImageSpec {
         };
     }
 
+    pub fn set_int_slice_attribute(&mut self, name: &str, value: &[i32]) {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let mut td = typedesc::INT32;
+        td.arraylen = value.len() as i32;
+        unsafe {
+            ffi::ImageSpec_set_attribute(
+                *spec,
+                name.as_ptr(),
+                td,
+                value.as_ptr() as *const c_void,
+            )
+        };
+    }
+
+    pub fn set_float_slice_attribute(&mut self, name: &str, value: &[f32]) {
+        let spec = match &self {
+            ImageSpec::Owned(s) => s,
+            ImageSpec::Ref(s) => s,
+        };
+        let name = CString::new(name).unwrap();
+        let mut td = typedesc::FLOAT;
+        td.arraylen = value.len() as i32;
+        unsafe {
+            ffi::ImageSpec_set_attribute(
+                *spec,
+                name.as_ptr(),
+                td,
+                value.as_ptr() as *const c_void,
+            )
+        };
+    }
+
     pub fn set_float_attribute(&mut self, name: &str, value: f32) {
         let spec = match &self {
             ImageSpec::Owned(s) => s,
